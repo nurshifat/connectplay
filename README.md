@@ -25,7 +25,7 @@ The LiveKit API secret is **server-only**. Never prefix it with `VITE_`.
 
 ## 3. Configure Supabase
 
-Open Supabase Dashboard → SQL Editor and run the entire `supabase/schema.sql` file.
+Open Supabase Dashboard → SQL Editor and run the entire `supabase/schema copy.sql` file.
 
 The script creates the tables, RLS policies, signup profile trigger, secure `create_or_get_dm` RPC, and realtime publication entries.
 
