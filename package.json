@@ -1,0 +1,36 @@
+{
+  "name": "connectplay",
+  "private": true,
+  "version": "4.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"vite\" \"tsx server/index.ts\"",
+    "build": "tsc -b && vite build",
+    "start": "tsx server/index.ts",
+    "typecheck": "tsc -b --pretty false"
+  },
+  "dependencies": {
+    "@livekit/components-react": "latest",
+    "@livekit/components-styles": "latest",
+    "@supabase/supabase-js": "latest",
+    "@tailwindcss/vite": "latest",
+    "@vitejs/plugin-react": "^6.1.0",
+    "concurrently": "latest",
+    "dotenv": "latest",
+    "express": "latest",
+    "livekit-client": "latest",
+    "livekit-server-sdk": "latest",
+    "lucide-react": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "tailwindcss": "latest",
+    "tsx": "latest",
+    "typescript": "latest",
+    "vite": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5"
+  }
+}
