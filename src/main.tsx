@@ -24,11 +24,13 @@ function Button({children,className="",...props}:{children:React.ReactNode;class
 function Auth(){
  const [signup,setSignup]=useState(false),[email,setEmail]=useState(""),[pass,setPass]=useState(""),[name,setName]=useState(""),[username,setUsername]=useState(""),[error,setError]=useState(""),[busy,setBusy]=useState(false);
  const submit=async()=>{setError("");setBusy(true);try{
+   if(!email.trim()||!pass)throw new Error("Email and password are required.");
+   if(!/^\S+@\S+\.\S+$/.test(email.trim()))throw new Error("Enter a valid email address.");
    if(signup){if(!name.trim()||!username.trim())throw new Error("Display name and username are required.");
     const clean=username.toLowerCase().replace(/[^a-z0-9_]/g,""); if(clean.length<3)throw new Error("Username must be at least 3 letters/numbers.");
     const {error}=await supabase.auth.signUp({email,password:pass,options:{data:{display_name:name.trim(),username:clean}}}); if(error)throw error;
    } else {const {error}=await supabase.auth.signInWithPassword({email,password:pass});if(error)throw error;}
- }catch(e){setError(e instanceof Error?e.message:"Something went wrong");}finally{setBusy(false)}};
+ }catch(e){setError(e instanceof DOMException&&e.name==="AbortError"?"Authentication timed out. Check your connection and try again.":e instanceof TypeError?"Could not reach the authentication service. Check your connection.":e instanceof Error?e.message:"Something went wrong");}finally{setBusy(false)}};
  return <div className="auth"><div className="auth-card"><div className="brand-mark">CP</div><div className="eyebrow">PRIVATE GAMING NETWORK</div><h1>{signup?"Create your squad account":"Welcome back"}</h1><p className="muted">Chat, call, stream and play together in one private space.</p>
  {signup&&<><input className="field" placeholder="Display name" value={name} onChange={e=>setName(e.target.value)}/><input className="field" placeholder="Username" value={username} onChange={e=>setUsername(e.target.value)}/></>}
  <input className="field" type="email" placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)}/><input className="field" type="password" placeholder="Password" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submit()}/>
