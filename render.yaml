@@ -6,8 +6,6 @@ services:
     buildCommand: npm ci && npm run build
     startCommand: npm start
     healthCheckPath: /api/health
-    healthCheckInterval: 15
-    env: node
     envVars:
       - key: NODE_ENV
         value: production
