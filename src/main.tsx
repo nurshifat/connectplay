@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { LiveKitRoom, VideoConference, AudioConference, RoomAudioRenderer, ControlBar, useLocalParticipant } from "@livekit/components-react";
+import { LiveKitRoom, VideoConference, AudioConference, RoomAudioRenderer, ControlBar} from "@livekit/components-react";
 import "@livekit/components-styles";
 import {
   Bell, Gamepad2, Headphones, MessageCircle, Mic, MonitorUp, Phone, Plus, Search,
