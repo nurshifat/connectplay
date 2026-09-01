@@ -2,7 +2,15 @@ import { createClient } from "@supabase/supabase-js";
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
-if (!url || !key) console.warn("Missing VITE_SUPABASE_URL or VITE_SUPABASE_PUBLISHABLE_KEY");
+
+const missingCredentials = !url || !key;
+if (missingCredentials) {
+  console.error("❌ Missing Supabase credentials!");
+  console.error("Required environment variables:");
+  if (!url) console.error("  - VITE_SUPABASE_URL");
+  if (!key) console.error("  - VITE_SUPABASE_PUBLISHABLE_KEY");
+  console.error("Please add these to your .env file");
+}
 
 const fetchWithTimeout: typeof fetch = async (input, init = {}) => {
   const controller = new AbortController();
@@ -18,3 +26,5 @@ export const supabase = createClient(url || "https://invalid.local", key || "inv
   global: { fetch: fetchWithTimeout },
   auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
 });
+
+export const hasSupabaseCredentials = !missingCredentials;

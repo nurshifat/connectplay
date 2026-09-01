@@ -15,7 +15,32 @@ const livekitApiKey = process.env.LIVEKIT_API_KEY;
 const livekitApiSecret = process.env.LIVEKIT_API_SECRET;
 const livekitUrl = process.env.LIVEKIT_URL;
 
+// Validate LiveKit configuration
 if (livekitUrl && !/^wss?:\/\//i.test(livekitUrl)) throw new Error("LIVEKIT_URL must start with ws:// or wss://");
+
+// Log configuration status on startup
+const configStatus = {
+  supabaseUrl: !!supabaseUrl ? "✓" : "✗",
+  supabaseAnonKey: !!supabaseAnonKey ? "✓" : "✗",
+  livekitUrl: !!livekitUrl ? "✓" : "✗",
+  livekitApiKey: !!livekitApiKey ? "✓" : "✗",
+  livekitApiSecret: !!livekitApiSecret ? "✓" : "✗",
+};
+console.log("📋 Configuration status:", configStatus);
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error("❌ Missing Supabase credentials:");
+  if (!supabaseUrl) console.error("  - SUPABASE_URL not set");
+  if (!supabaseAnonKey) console.error("  - SUPABASE_ANON_KEY not set");
+}
+
+if (!livekitApiKey || !livekitApiSecret || !livekitUrl) {
+  console.error("❌ Missing LiveKit credentials:");
+  if (!livekitUrl) console.error("  - LIVEKIT_URL not set");
+  if (!livekitApiKey) console.error("  - LIVEKIT_API_KEY not set");
+  if (!livekitApiSecret) console.error("  - LIVEKIT_API_SECRET not set");
+  console.error("Media features will not work until these are configured");
+}
 
 function userClient(token: string) {
   if (!supabaseUrl || !supabaseAnonKey) throw new Error("Supabase server configuration is missing");
@@ -41,11 +66,16 @@ function roomId(room: unknown) {
   return room;
 }
 
-app.get("/api/health", (_req, res) => res.json({ ok: true, service: "connectplay" }));
+app.get("/api/health", (_req, res) => res.json({ ok: true, service: "connectplay", config: configStatus }));
 
 app.post("/api/livekit/token", async (req, res) => {
   try {
-    if (!livekitApiKey || !livekitApiSecret || !livekitUrl) return res.status(503).json({ error: "LiveKit is not configured" });
+    if (!livekitApiKey || !livekitApiSecret || !livekitUrl) {
+      console.error("LiveKit token request failed: Missing LiveKit configuration");
+      return res.status(503).json({ 
+        error: "LiveKit is not configured. Media features are unavailable. Please configure LIVEKIT_URL, LIVEKIT_API_KEY, and LIVEKIT_API_SECRET in your environment." 
+      });
+    }
     const { client, user } = await requireUser(req);
     const room = roomId(req.body?.room);
     const [scope, ...idParts] = room.split("-");
@@ -96,4 +126,4 @@ if (process.env.NODE_ENV === "production") {
 }
 
 const port = Number(process.env.PORT || 8787);
-app.listen(port, () => console.log(`ConnectPlay server listening on http://localhost:${port}`));
+app.listen(port, () => console.log(`✓ ConnectPlay server listening on http://localhost:${port}`));
