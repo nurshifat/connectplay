@@ -228,8 +228,20 @@ function Friends({friends,session,search,reload}:{friends:Friend[];session:Sessi
    }catch(e){alert(e instanceof Error?e.message:"Could not update friend request");}
    finally{setBusy(null)}
  };
- const startDm=async(friend:Friend)=>{const {data,error}=await supabase.rpc("create_or_get_dm",{other_user_id:friend.id});if(error){alert(error.message);return;}
- window.dispatchEvent(new CustomEvent("connectplay:open-dm",{detail:data}));};
+ const startDm=async(friend:Friend)=>{
+  const {data,error}=await supabase.rpc("create_or_get_dm",{other_user_id:friend.id});
+
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  console.log("DM DATA:", JSON.stringify(data));
+
+  window.dispatchEvent(
+    new CustomEvent("connectplay:open-dm",{detail:data})
+  );
+};
  const pending=friends.filter(f=>f.friendship_status==="pending"&&f.receiver_id===session!.user.id),accepted=friends.filter(f=>f.friendship_status==="accepted");
  return <div className="page"><div className="page-heading"><div><div className="eyebrow">SOCIAL</div><h2>Friends</h2><p>Find your people and start a private conversation.</p></div></div><div className="search-panel"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doSearch()} placeholder="Search by username"/><Button className="primary" onClick={doSearch}>Search</Button></div>{results.length>0&&<div className="result-list">{results.map(p=><div className="friend-card" key={p.id}><Avatar profile={p}/><div className="friend-main"><b>{p.display_name}</b><span>@{p.username}</span></div><Button disabled={busy===p.id} className="small-btn" onClick={()=>request(p.id)}><UserPlus size={15}/> Add</Button></div>)}</div>}{pending.length>0&&<><div className="section-title">Friend requests</div><div className="friend-grid">{pending.map(f=><div className="friend-card" key={f.friendship_id}><Avatar profile={f}/><div className="friend-main"><b>{f.display_name}</b><span>@{f.username}</span></div><div className="actions"><Button className="small-btn accept" disabled={busy===f.friendship_id} onClick={()=>respond(f.friendship_id,"accepted")}><Check size={15}/></Button><Button className="small-btn danger-lite" disabled={busy===f.friendship_id} onClick={()=>respond(f.friendship_id,"rejected")}><UserX size={15}/></Button></div></div>)}</div></>}<div className="section-title">Your friends</div><div className="friend-grid">{accepted.length?accepted.map(f=><div className="friend-card" key={f.friendship_id}><Avatar profile={f}/><div className="friend-main"><b>{f.display_name}</b><span>@{f.username} · {f.status}</span></div><div className="actions"><Button className="small-btn" onClick={()=>startDm(f)}><MessageCircle size={15}/> Message</Button></div></div>):<div className="empty">No friends yet. Search for a username above.</div>}</div></div>
 }
