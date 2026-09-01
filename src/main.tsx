@@ -38,17 +38,143 @@ function Auth(){
  <button className="switch" onClick={()=>setSignup(v=>!v)}>{signup?"Already have an account? Sign in":"New here? Create an account"}</button></div></div>
 }
 
-function Media({mode,conversationId,close}:{mode:"voice"|"video"|"stream";conversationId:string;close:()=>void}){
- const [token,setToken]=useState<string>(),[url,setUrl]=useState<string>(),[error,setError]=useState("");
- useEffect(()=>{let alive=true;roomToken(dmRoom(conversationId)).then(r=>{if(!alive)return;setToken(r.token);setUrl(r.url)}).catch(e=>alive&&setError(e instanceof Error?e.message:"Could not start media"));return()=>{alive=false}},[conversationId]);
- if(error)return <div className="media-overlay"><div className="media-error"><ShieldCheck size={32}/><h2>Could not start the call</h2><p>{error}</p><Button onClick={close}>Close</Button></div></div>;
- if(!token||!url)return <div className="media-overlay"><div className="connecting"><Loader2 className="spin" size={28}/> Connecting to secure media…</div></div>;
- return <div className="media-overlay"><LiveKitRoom token={token} serverUrl={url} connect audio video={mode==="video"} options={{adaptiveStream:true,dynacast:true}} onError={e=>setError(e instanceof Error?e.message:"LiveKit connection failed")} onMediaDeviceFailure={()=>setError("Microphone or camera access failed")} onDisconnected={close} data-lk-theme="default">
-   {mode==="voice" ? <AudioConference/> : <VideoConference/>}
-   <RoomAudioRenderer/>
-   <div className="media-controls"><ControlBar controls={{microphone:true,camera:mode==="video",screenShare:mode!=="voice",leave:false}} variation="minimal" /></div>
-   <div className="media-topbar"><span className="live-pill"><CircleDot size={14}/> {mode==="stream"?"GAME STREAM":"LIVE CALL"}</span><span className="media-hint">{mode==="stream"?"Click Share Screen and choose your game window":"Your voice and media are encrypted in transit by LiveKit"}</span><Button className="danger" onClick={close}><PhoneOff size={18}/> End</Button></div>
- </LiveKitRoom></div>;
+function Media({
+  mode,
+  conversationId,
+  close
+}: {
+  mode: "voice" | "video" | "stream";
+  conversationId: string;
+  close: () => void;
+}) {
+  const [token, setToken] = useState<string>();
+  const [url, setUrl] = useState<string>();
+  const [error, setError] = useState("");
+
+  const isVoice = mode === "voice";
+  const isVideo = mode === "video";
+  const isStream = mode === "stream";
+
+  useEffect(() => {
+    let alive = true;
+
+    roomToken(dmRoom(conversationId))
+      .then((r) => {
+        if (!alive) return;
+        setToken(r.token);
+        setUrl(r.url);
+      })
+      .catch((e) => {
+        if (alive) {
+          setError(
+            e instanceof Error ? e.message : "Could not start media"
+          );
+        }
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [conversationId]);
+
+  if (error) {
+    return (
+      <div className="media-overlay">
+        <div className="media-error">
+          <ShieldCheck size={32} />
+          <h2>Could not start the call</h2>
+          <p>{error}</p>
+          <Button onClick={close}>Close</Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!token || !url) {
+    return (
+      <div className="media-overlay">
+        <div className="connecting">
+          <Loader2 className="spin" size={28} />
+          Connecting to secure media…
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="media-overlay">
+      <LiveKitRoom
+        token={token}
+        serverUrl={url}
+        connect={true}
+
+        // IMPORTANT:
+        // Do not automatically request microphone or camera.
+        // The user can turn them on from the controls.
+        audio={false}
+        video={false}
+
+        options={{
+          adaptiveStream: true,
+          dynacast: true,
+        }}
+
+        onError={(e) =>
+          setError(
+            e instanceof Error
+              ? e.message
+              : "LiveKit connection failed"
+          )
+        }
+
+        onDisconnected={close}
+
+        data-lk-theme="default"
+      >
+
+        {/* Video call shows video.
+            Voice and Stream use audio conference UI. */}
+        {isVideo ? (
+          <VideoConference />
+        ) : (
+          <AudioConference />
+        )}
+
+        <RoomAudioRenderer />
+
+        <div className="media-controls">
+          <ControlBar
+            controls={{
+              microphone: true,
+              camera: true,
+              screenShare: true,
+              leave: false,
+            }}
+            variation="minimal"
+          />
+        </div>
+
+        <div className="media-topbar">
+          <span className="live-pill">
+            <CircleDot size={14} />
+            {isStream ? "GAME STREAM" : "LIVE CALL"}
+          </span>
+
+          <span className="media-hint">
+            {isStream
+              ? "Share your game screen and optionally enable your mic or camera"
+              : "Turn your microphone or camera on whenever you want"}
+          </span>
+
+          <Button className="danger" onClick={close}>
+            <PhoneOff size={18} />
+            End
+          </Button>
+        </div>
+
+      </LiveKitRoom>
+    </div>
+  );
 }
 
 function App(){
